@@ -1,0 +1,55 @@
+.App {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  text-align: center;
+}
+
+input[type="file"] {
+  margin-bottom: 20px;
+}
+
+h3 {
+  margin-top: 20px;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column; /* Align elements vertically */
+  align-items: center;
+  width: 100%;
+}
+
+.pdf-container {
+  width: 100%;
+  position: relative;
+  margin-bottom: 20px; /* Add some space between PDF and selected area */
+}
+
+.selection-container {
+  width: 100%; /* Match the width of the PDF container */
+}
+
+.pdf-container canvas {
+  width: 100%;
+  height: auto;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.selection-box {
+  position: absolute;
+  border: 2px solid red;
+  pointer-events: none;
+  z-index: 10; /* Ensure the selection box is on top */
+}

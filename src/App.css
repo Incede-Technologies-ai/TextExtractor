@@ -1,0 +1,65 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.pdf-container {
+  position: relative;
+  width: 80%;
+  max-width: 600px;
+  margin-bottom: 20px;
+}
+
+.overlay {
+  position: relative;
+  border: 1px solid #ccc;
+  width: 100%;
+  height: auto;
+}
+
+.selection-box {
+  position: absolute;
+  border: 2px dashed red;
+  background-color: rgba(255, 0, 0, 0.2);
+}
+
+.selection-container {
+  width: 80%;
+  max-width: 600px;
+  text-align: center;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.selection-container h3 {
+  margin-bottom: 10px;
+}
+
+.selection-container p {
+  min-height: 50px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: white;
+  font-size: 16px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px 15px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
