@@ -1,9 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { PDFDocument } from "pdf-lib";
-
-// Load pdf.js worker for rendering
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
 
 const PDFCropper = () => {
   const [pdfFile, setPdfFile] = useState(null);
@@ -11,10 +9,12 @@ const PDFCropper = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [selection, setSelection] = useState(null);
   const [isSelecting, setIsSelecting] = useState(false);
+  const [apiResponse, setApiResponse] = useState("");
   const selectionRef = useRef(null);
   const containerRef = useRef(null);
-  const scale = 4; // Increased scale for HD quality
-  const pdfScale = 1.5; // Display scale of the PDF
+  const scale = 4;
+  const pdfScale = 1.5;
+  const downloadPath = "C:/Users/user/Downloads/1234.pdf";
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -29,22 +29,18 @@ const PDFCropper = () => {
 
   const handleMouseDown = (event) => {
     if (!containerRef.current) return;
-
     const rect = containerRef.current.getBoundingClientRect();
     const startX = event.clientX - rect.left;
     const startY = event.clientY - rect.top;
-
     setSelection({ x: startX, y: startY, width: 0, height: 0 });
     setIsSelecting(true);
   };
 
   const handleMouseMove = (event) => {
     if (!isSelecting || !selection) return;
-
     const rect = containerRef.current.getBoundingClientRect();
     const endX = event.clientX - rect.left;
     const endY = event.clientY - rect.top;
-
     setSelection((prev) => ({
       x: Math.min(prev.x, endX),
       y: Math.min(prev.y, endY),
@@ -72,20 +68,16 @@ const PDFCropper = () => {
       const page = await pdf.getPage(pageNumber);
       const viewport = page.getViewport({ scale });
 
-      // Create a hidden canvas to render the PDF in high quality
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
-
       canvas.width = viewport.width;
       canvas.height = viewport.height;
 
       await page.render({ canvasContext: context, viewport }).promise;
 
-      // Adjust selection coordinates for high resolution
       const { x, y, width, height } = selectionRef.current;
       const scaleRatio = scale / pdfScale;
 
-      // Create a cropped canvas
       const croppedCanvas = document.createElement("canvas");
       const croppedContext = croppedCanvas.getContext("2d");
 
@@ -104,14 +96,10 @@ const PDFCropper = () => {
         height * scaleRatio
       );
 
-      // Convert cropped canvas to high-quality JPEG image
-      const croppedImageData = croppedCanvas.toDataURL("image/jpeg", 1.0); // Maximum quality
+      const croppedImageData = croppedCanvas.toDataURL("image/jpeg", 1.0);
 
-      // Create a high-quality PDF
       const newPdfDoc = await PDFDocument.create();
       const newPage = newPdfDoc.addPage([width * scaleRatio, height * scaleRatio]);
-
-      // Embed the cropped image in high resolution
       const image = await newPdfDoc.embedJpg(croppedImageData);
       newPage.drawImage(image, {
         x: 0,
@@ -120,19 +108,35 @@ const PDFCropper = () => {
         height: height * scaleRatio,
       });
 
-      // Save and download the new PDF
       const pdfBytes = await newPdfDoc.save();
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "cropped_hd.pdf";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
 
-      console.log("Cropped HD-quality PDF saved successfully!");
+      // Automatically download to the "Downloads" folder
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = downloadPath.split("/").pop();
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      console.log("Cropped HD-quality PDF saved as 1234.pdf");
+
+      // Wait for a short time before triggering the API
+      setTimeout(() => fetchExtractedText(downloadPath), 2000);
     } catch (error) {
       console.error("Error cropping PDF:", error);
+    }
+  };
+
+  const fetchExtractedText = async (pdfPath) => {
+    try {
+      const response = await fetch(`http://localhost:8080/extract/text?pdfPath=${encodeURIComponent(pdfPath)}`);
+      if (!response.ok) throw new Error("Failed to extract text from PDF");
+      const data = await response.text();
+      setApiResponse(data);
+    } catch (error) {
+      console.error("Error fetching extracted text:", error);
+      setApiResponse("Error fetching extracted text.");
     }
   };
 
@@ -185,6 +189,15 @@ const PDFCropper = () => {
           <button onClick={handleExportToPDF} style={{ marginTop: "10px" }}>
             Export Selected Area to PDF (HD)
           </button>
+
+        
+          {apiResponse && (
+  <div style={{ marginTop: "20px", padding: "10px", border: "1px solid #ccc" }}>
+    <h3>Extracted Text:</h3>
+    <pre style={{ whiteSpace: "pre-wrap", textAlign: "left" }}>{apiResponse}</pre>
+  </div>
+)}
+
         </>
       )}
     </div>
